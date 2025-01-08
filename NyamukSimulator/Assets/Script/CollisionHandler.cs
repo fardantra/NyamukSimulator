@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement; // Untuk ganti scene ketika level complete
 
 public class CollisionHandler : MonoBehaviour
 {
-    private int amoebaEaten = 0;
+    static public int amoebaEaten = 0;
     public int amoebaToEat = 10; // Target complete level
 
     void OnTriggerEnter2D(Collider2D collision)
