@@ -1,41 +1,59 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float baseSpeed = 2f; // Kecepatan dasar
-    public float maxSpeedMultiplier = 1.1f; // multiplier kecepatan jika kursor lebih jauh
-    public float maxSpeed = 4f; // Batas maksimum kecepatan
+    public float moveSpeed = 7f; // Kecepatan konstan player
 
-    private Vector3 previousCursorPosition; // To track cursor movement
+    private Vector3 currentCursorPosition;
+    private SpriteRenderer playerRenderer;
 
     void Start()
     {
-        // Cek posisi kursor sebelumnya
-        Cursor.visible = false; // Menyembunyikan kursor
-        Cursor.lockState = CursorLockMode.Confined; // Membatasi kursor dalam jendela game
-        previousCursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        previousCursorPosition.z = 0; // tetap di 2D
+        // Sembunyikan kursor
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Confined;
+
+        // Ambil komponen SpriteRenderer untuk menghitung ukuran player
+        playerRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update()
     {
-        // Dapatkan current posisi mouse
-        Vector3 currentCursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        currentCursorPosition.z = 0; // Keep in 2D plane
+        // Dapatkan posisi kursor dalam dunia
+        currentCursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        currentCursorPosition.z = 0; // Tetap di bidang 2D
 
-        // Hitung jarak player dengan cursor
-        float distanceToCursor = Vector3.Distance(transform.position, currentCursorPosition);
+        // Hitung ukuran objek player
+        float halfWidth = playerRenderer.bounds.size.x / 2;
+        float halfHeight = playerRenderer.bounds.size.y / 2;
 
-        // Mengatur kecepatan berdasarkan jarak player dengan kursor
-        float speed = baseSpeed + (distanceToCursor * maxSpeedMultiplier);
-        speed = Mathf.Min(speed, maxSpeed); // Limit speed to maximum value
+        // Hitung batas layar berdasarkan ukuran kamera
+        Camera cam = Camera.main;
+        float camHeight = 2f * cam.orthographicSize;
+        float camWidth = camHeight * cam.aspect;
 
-        // Menggerakan player ke kursor dengan smooth
-        transform.position = Vector3.MoveTowards(transform.position, currentCursorPosition, speed * Time.deltaTime);
+        float minX = cam.transform.position.x - camWidth / 2 + halfWidth;
+        float maxX = cam.transform.position.x + camWidth / 2 - halfWidth;
+        float minY = cam.transform.position.y - camHeight / 2 + halfHeight;
+        float maxY = cam.transform.position.y + camHeight / 2 - halfHeight;
 
-        // update posisi kursor sebelumnya
-        previousCursorPosition = currentCursorPosition;
+        // Koreksi posisi target agar berada dalam batas kamera
+        float targetX = Mathf.Clamp(currentCursorPosition.x, minX, maxX);
+        float targetY = Mathf.Clamp(currentCursorPosition.y, minY, maxY);
+
+        Vector3 clampedCursorPosition = new Vector3(targetX, targetY, 0);
+
+        // Hitung arah pergerakan
+        Vector3 directionToMove = clampedCursorPosition - transform.position;
+
+        // Jika player sudah sangat dekat dengan target, jangan bergerak
+        if (directionToMove.magnitude <= 0.01f)
+            return;
+
+        // Normalisasi arah agar gerakan selalu konstan
+        Vector3 normalizedDirection = directionToMove.normalized;
+
+        // Gerakkan player ke arah target dengan kecepatan konstan
+        transform.position += normalizedDirection * moveSpeed * Time.deltaTime;
     }
 }

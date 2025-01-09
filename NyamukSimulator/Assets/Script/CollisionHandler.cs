@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement; // Untuk ganti scene ketika level complete
 public class CollisionHandler : MonoBehaviour
 {
     static public int amoebaEaten = 0;
-    public int amoebaToEat = 10; // Target complete level
+    public int amoebasToEat = 10; // Target complete level
 
     void OnTriggerEnter2D(Collider2D collision)
     {
@@ -15,7 +15,7 @@ public class CollisionHandler : MonoBehaviour
             amoebaEaten++;
             Destroy(collision.gameObject);
 
-            if (amoebaEaten >= amoebaToEat)
+            if (amoebaEaten >= amoebasToEat)
             {
                 LevelComplete();
             }
@@ -28,12 +28,14 @@ public class CollisionHandler : MonoBehaviour
 
     void LevelComplete()
     {
+        Cursor.visible = true;
         Debug.Log("Level Completed!");
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene("LevelChoose");
     }
 
     void GameOver()
     {
+        Cursor.visible = true;
         Debug.Log("Game Over!");
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
