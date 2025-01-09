@@ -1,12 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; // Untuk ganti scene ketika level complete
+using UnityEngine.SceneManagement;
 
 public class CollisionHandler : MonoBehaviour
 {
     static public int amoebaEaten = 0;
-    public int amoebasToEat = 10; // Target complete level
+    public int amoebasToEat = 10; // Target score to display high score (optional)
+    public UIManager uiManager;
+
+    void Awake()
+    {
+        if (uiManager == null)
+        {
+            uiManager = FindObjectOfType<UIManager>();
+            if (uiManager == null)
+            {
+                Debug.LogError("UIManager not found in the scene!");
+            }
+        }
+    }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
@@ -14,11 +27,6 @@ public class CollisionHandler : MonoBehaviour
         {
             amoebaEaten++;
             Destroy(collision.gameObject);
-
-            if (amoebaEaten >= amoebasToEat)
-            {
-                LevelComplete();
-            }
         }
         else if (collision.CompareTag("Fish") || collision.CompareTag("Frog"))
         {
@@ -26,17 +34,26 @@ public class CollisionHandler : MonoBehaviour
         }
     }
 
-    void LevelComplete()
-    {
-        Cursor.visible = true;
-        Debug.Log("Level Completed!");
-        SceneManager.LoadScene("LevelChoose");
-    }
-
     void GameOver()
     {
         Cursor.visible = true;
         Debug.Log("Game Over!");
+
+        if (uiManager != null)
+        {
+            uiManager.UpdateHighScore();  // Update the high score if necessary
+            uiManager.UpdateHighScoreUI(); // Refresh the high score UI
+        }
+        else
+        {
+            Debug.LogError("UIManager is not assigned in CollisionHandler!");
+        }
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+        if (uiManager != null)
+        {
+            uiManager.ResetScore(); // Reset the current score
+        }
     }
 }
