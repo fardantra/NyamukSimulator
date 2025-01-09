@@ -2,9 +2,10 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 7f; // Kecepatan konstan player
+    public float baseSpeed = 2f; // Kecepatan dasar
+    public float maxSpeedMultiplier = 1.1f; // Multiplier kecepatan jika kursor lebih jauh
+    public float maxSpeed = 8f; // Batas maksimum kecepatan
 
-    private Vector3 currentCursorPosition;
     private SpriteRenderer playerRenderer;
 
     void Start()
@@ -20,8 +21,8 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         // Dapatkan posisi kursor dalam dunia
-        currentCursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        currentCursorPosition.z = 0; // Tetap di bidang 2D
+        Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        cursorPosition.z = 0; // Tetap di bidang 2D
 
         // Hitung ukuran objek player
         float halfWidth = playerRenderer.bounds.size.x / 2;
@@ -38,22 +39,23 @@ public class PlayerMovement : MonoBehaviour
         float maxY = cam.transform.position.y + camHeight / 2 - halfHeight;
 
         // Koreksi posisi target agar berada dalam batas kamera
-        float targetX = Mathf.Clamp(currentCursorPosition.x, minX, maxX);
-        float targetY = Mathf.Clamp(currentCursorPosition.y, minY, maxY);
-
-        Vector3 clampedCursorPosition = new Vector3(targetX, targetY, 0);
+        cursorPosition.x = Mathf.Clamp(cursorPosition.x, minX, maxX);
+        cursorPosition.y = Mathf.Clamp(cursorPosition.y, minY, maxY);
 
         // Hitung arah pergerakan
-        Vector3 directionToMove = clampedCursorPosition - transform.position;
+        Vector3 directionToMove = cursorPosition - transform.position;
 
-        // Jika player sudah sangat dekat dengan target, jangan bergerak
-        if (directionToMove.magnitude <= 0.01f)
-            return;
+        // Hitung jarak ke kursor
+        float distanceToCursor = directionToMove.magnitude;
 
-        // Normalisasi arah agar gerakan selalu konstan
+        // Normalisasi arah agar panjangnya selalu 1
         Vector3 normalizedDirection = directionToMove.normalized;
 
-        // Gerakkan player ke arah target dengan kecepatan konstan
-        transform.position += normalizedDirection * moveSpeed * Time.deltaTime;
+        // Mengatur kecepatan berdasarkan jarak ke kursor
+        float speed = baseSpeed + (distanceToCursor * maxSpeedMultiplier);
+        speed = Mathf.Min(speed, maxSpeed); // Batasi kecepatan maksimum
+
+        // Gerakkan player ke arah kursor dengan kecepatan yang dihitung
+        transform.position += normalizedDirection * speed * Time.deltaTime;
     }
 }
