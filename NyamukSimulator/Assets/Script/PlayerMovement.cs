@@ -57,5 +57,14 @@ public class PlayerMovement : MonoBehaviour
 
         // Gerakkan player ke arah kursor dengan kecepatan yang dihitung
         transform.position += normalizedDirection * speed * Time.deltaTime;
+
+        if (PauseMenu.isPaused == true) // Jika di-pause, cursornya akan muncul kembali
+        {
+            Cursor.visible = true; 
+        }
+        else 
+        {
+            Cursor.visible = false;
+        }
     }
 }
